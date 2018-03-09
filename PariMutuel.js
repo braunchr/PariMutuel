@@ -1,406 +1,417 @@
 
 function init() {
 
-    // Get the canvas and the context as global variables
-    canv = document.getElementById("canvas1");
-    ctx = canv.getContext("2d");
-        
-    // the time interval in seconds for the differntial equation increments 
-    fps = 1 / 60;
-    multip = 100;
-    deltat = fps / multip;
-    stepCounter = 0;
+    //***************************************
+    //  Global Variables (no use of VAR word)
+    //***************************************
 
-    dV = new diffVector();
-    
+    exA = [];               // the exacta Array of bets length n*(n-1)*...
+    winA = [];              // the win Array of bets length N
+    placeA = [];            // the place Array of length N (same model as the win array but may be easier to show separately)
 
-    //******************************************************************************
-    // the initial conditions for the pendulums: length, mass and angles
-    l1 = 0.5;                        
-    l2 = 0.5;
-    l3 = 0.5;  
-
-    mass1 = 1;                          
-    mass2 = 1;                          
-    mass3 = 1;                          
-
-    dV.t1 = 1* Math.PI / 4;
-    dV.t2 = 3*Math.PI / 4;
-    dV.t3 = 2*Math.PI/4;
-
-    g = 10;    // gravitational constant
-
-    ax = new Axis(canv, -1.5, 1.5, -1.8, 1.2);  // the axis on which to draw
-
-    //******************************************************************************
-
-    // use other derived variables in the equations for ease of notation
-    m1 = mass1 + mass2 + mass3;
-    m2 = mass2 + mass3;
-    m3 = mass3;
-
-    // this is the postion of the centre of the entire pendulum  
-    ball0 = new Ball();
-    ball0.BallColor = "Blue";
-    ball0.Radius = 5;
-    ball0.X = 0;
-    ball0.Y = 0;
-
-    // this is the postion of the first pendulum
-    ball1 = new Ball();
-    ball1.BallColor = "Green";
-    ball1.Radius = 15 * Math.sqrt(mass1);   //just sqrt to make the appearance bigger when the mass is higher
-    ball1.X = l1 * Math.sin(dV.t1);
-    ball1.Y = -l1 * Math.cos(dV.t1);
-
-    // the posistion of the second pendulum
-    ball2 = new Ball();
-    ball2.BallColor = "Red";
-    ball2.Radius = 15 * Math.sqrt(mass2);
-    ball2.X = l2 * Math.sin(dV.t2) + ball1.X;
-    ball2.Y = -l2 * Math.cos(dV.t2) + ball1.Y;
-
-    // the posistion of the third pendulum
-    ball3 = new Ball();
-    ball3.BallColor = "Blue";
-    ball3.Radius = 15 * Math.sqrt(mass3);
-    ball3.X = l2 * Math.sin(dV.t3) + ball2.X;
-    ball3.Y = -l2 * Math.cos(dV.t3) + ball2.Y;
-
-    enPotential = -g * l1 * m1 * Math.cos(dV.t1) - g * m2 * l2 * Math.cos(dV.t2) - g * m3 * l3 * Math.cos(dV.t3);
-    enKineticLine1 = m1 / 2 * l1 * l1 * dV.t1D * dV.t1D + m2 / 2 * l2 * l2 * dV.t2D * dV.t2D + m3 / 2 * l3 * l3 * dV.t3D * dV.t3D;
-    enKineticLine2 = m2 * l1 * l2 * dV.t1D * dV.t2D * Math.cos(dV.t1 - dV.t2) + m3 * l2 * l3 * dV.t2D * dV.t3D * Math.cos(dV.t2 - dV.t3) + m3 * l1 * l3 * dV.t1D * dV.t3D * Math.cos(dV.t1 - dV.t3);
-    enInitial = enPotential + enKineticLine1 + enKineticLine2;
-
-  
-    Draw();
-}
+    maxRunners = Number(document.getElementById("MaxRunners").value);        // the number of runners in the race 
+    exactaDepth = Number(document.getElementById("ExactaDepth").value);        // the number of allowed runners to bet on in an exacta (2 or 3)
+    seedBet = 1e-9;         // the nominal amount to avoid division by zero
 
 
-// Functionto be called by animation timer.
-function Draw() {
-
-    var err = 0;
-    var tol = 0.00000000001;
-    // calculate next iteration from previous variables
-
-    var v1 = new diffVector();
-    var v0 = new diffVector();
-    
-
-    for (cumulDeltat = 0; cumulDeltat < 1 / 60; cumulDeltat += deltat) {
+    initialiseExactaArray(); // fill the arrays with seed money
+    initialiseWinArray();
+    initialisePlaceArray();
 
 
-        // iterateRungeKutta(vDiff, deltat);
-        // stepCounter += 1;
+    // this is where you add bets to each runner. the functions take any number of arguments
+    addExBet([0, 20], [1, 20], [2, 30], [3, 40], [4, 20], [5, 30], [6, 10], [7, 20], [8, 30], [9, 5], [10, 20], [11, 30]);
+    addWinBet([0, 150], [1, 300], [2, 140],[3,310]);
+    addPlaceBet([0, 90], [1, 120], [2, 80], [3, 110]);
 
-        v0.copy(dV);
-        v1.copy(dV);
-
-        iterateRungeKutta(v1, deltat);
-        iterateRungeKutta(dV, deltat / 2);
-        //vHalf.copy(vDiff);
-        iterateRungeKutta(dV, deltat / 2);
-        stepCounter += 3;
-
-        err = Math.sqrt((dV.t1 - v1.t1) * (dV.t1 - v1.t1) + (dV.t2 - v1.t2) * (dV.t2 - v1.t2) + (dV.t3 - v1.t3) * (dV.t3 - v1.t3) + (dV.t1D - v1.t1D) * (dV.t1D - v1.t1D) + (dV.t2D - v1.t2D) * (dV.t2D - v1.t2D) + (dV.t3D - v1.t3D) * (dV.t3D - v1.t3D));
+    // iterate through the three steps of splitting hte win bets, the place bets, aggregate all of them and start again
+    var iterations = Number(document.getElementById("iter").value);
 
 
-        while (err > tol) {
+    for (var i = 0; i < iterations / 10; i++) {
 
-            dV.copy(v0);
-            v1.copy(v0);
-
-            deltat = 0.9 * deltat * Math.pow(tol / err, 1 / 4);
-
-            iterateRungeKutta(v1, deltat);
-            iterateRungeKutta(dV, deltat / 2);
-            iterateRungeKutta(dV, deltat / 2);
-            stepCounter += 3;
-
-            err = Math.sqrt((dV.t1 - v1.t1) * (dV.t1 - v1.t1) + (dV.t2 - v1.t2) * (dV.t2 - v1.t2) + (dV.t3 - v1.t3) * (dV.t3 - v1.t3) + (dV.t1D - v1.t1D) * (dV.t1D - v1.t1D) + (dV.t2D - v1.t2D) * (dV.t2D - v1.t2D) + (dV.t3D - v1.t3D) * (dV.t3D - v1.t3D));
-
+        for (var j = 0; j < 10; j++) {
+            splitBets(winA);
+            splitBets(placeA);
+            aggregateBets();
         }
 
+        averageSplits(winA);
+        averageSplits(placeA);
+        aggregateBets();
 
-        deltat = 0.9 * deltat * Math.pow(tol / err, 1 / 5);
+    }
+    // display whihchever calculation you want to display
+    showResults();
 
+}
+
+
+
+function showResults() {
+
+    var pot;
+    var st;
+
+    //******************************
+    //  UNMINGLED WINS
+    //******************************
+
+    // first calculate the total win pot by summing all win bets across the win array
+    pot = 0;
+
+    winA.forEach(function (bet) {
+        pot += bet.amt;
+    });
+    
+    // then calculate and output each of the odds for each win 
+    winA.forEach(function (bet) {
+        if (pot / bet.amt < 1000) {
+            st = (pot / bet.amt).toFixed(2).toString();
+            document.getElementById("list4").innerHTML += "<div>" + st + "</div>"; // this is adding the string to the "list 4" element in the HTML
+        }
+    });
+
+    //******************************
+    //  UNMINGLED PLACE 
+    //******************************
+    // first calculate the total win pot by summing all win bets across the win array
+    pot = 0;
+
+    placeA.forEach(function (bet) {
+        pot += bet.amt;
+    });
+
+    // then calculate and output each of the odds for each win 
+    placeA.forEach(function (bet) {
+        if (pot / bet.amt < 1000) {
+            st = (pot / bet.amt).toFixed(2).toString();
+            document.getElementById("list5").innerHTML += "<div>" + st + "</div>";
+        }
+    });
+
+    //******************************
+    //  UNMINGLED EXACTA 
+    //******************************
+    // first calculate the total win pot by summing all win bets across the win array
+    pot = 0;
+
+    exA.forEach(function (bet) {
+        pot += bet.amt;
+    });
+
+    // then calculate and output each of the odds for each win 
+    exA.forEach(function (bet) {
+        if (pot / bet.amt < 1000) {
+            st = (pot / bet.amt).toFixed(2).toString();
+            document.getElementById("list6").innerHTML += "<div>" + st + "</div>";
+        }
+    });
+
+
+    //******************************
+    //  MINGLED EXACTA
+    //******************************
+
+    // first calculate the total win pot by summing all win bets across the win array
+    pot = 0;
+
+    exA.forEach(function (bet) {
+        pot += bet.mingledAmt;
+    });
+
+    // then calculate and output each of the odds for each win 
+    exA.forEach(function (bet) {
+        if (pot / bet.mingledAmt < 1000) {
+            st = (pot / bet.mingledAmt).toFixed(2).toString();
+            document.getElementById("list3").innerHTML += "<div>" + st + "</div>";
+        }
+    });
+
+
+    //******************************
+    //  MINGLED WIN
+    //******************************
+
+    // first calculate the total aggregated pot across all bets
+
+    pot = 0;
+
+    exA.forEach(function (bet) {
+        pot += bet.mingledAmt;
+    });
+
+    // for each win bet, calculate the return by checking the return of the first split. All splits have hte same return
+    winA.forEach(function (bet) {
+
+        var ind = bet.splitA[0].exIndex;   // take the first split. Returns are the same for all splits
+        var exOdd = pot / exA[ind].mingledAmt;  // take the first split to compute the exacta mingled odds of that split
+        var winReturn = bet.splitA[0].splitAmt * exOdd;  // calculate the return for that first split using the exacta odds
+
+        mingledOdd = winReturn / bet.amt;  // the mingled odds are the ratio of the Win bets (bet.amt) to the winReturns
+
+        if (mingledOdd < 1000) {
+            st = mingledOdd.toFixed(2).toString();
+            document.getElementById("list1").innerHTML += "<div>" + st + "</div>";
+        }
+
+    });
+
+
+
+    //******************************
+    //  MINGLED PLACE
+    //******************************
+
+
+    // first calculate the total aggregated pot across all bets
+
+    pot = 0;
+
+    exA.forEach(function (bet) {
+        pot += bet.mingledAmt;
+    });
+
+
+    placeA.forEach(function (bet) {
+
+        var ind = bet.splitA[0].exIndex;   // take the first split. Returns are the same for all splits
+        var exOdd = pot / exA[ind].mingledAmt;  // take the first split to compute the exacta mingled odds of that split
+        var winReturn = bet.splitA[0].splitAmt * exOdd;  // calculate the return for that first split using the exacta odds
+
+        mingledOdd = winReturn / bet.amt;  // the mingled odds are the ratio of the Win bets (bet.amt) to the winReturns
+
+
+        if (mingledOdd < 1000) {
+            st = mingledOdd.toFixed(2).toString();
+            document.getElementById("list2").innerHTML += "<div>" + st + "</div>";
+        }
+
+    });
+
+// this inserts a blank line so that you can re-run another iteration and see the line break. 
+    document.getElementById("list1").innerHTML += "</br>";
+    document.getElementById("list2").innerHTML += "</br>";
+    document.getElementById("list3").innerHTML += "</br>";
+    document.getElementById("list4").innerHTML += "</br>";
+    document.getElementById("list5").innerHTML += "</br>";
+    document.getElementById("list6").innerHTML += "</br>";
+}
+
+
+function clearResults() {
+
+    // clear all the lists by instering null character
+    document.getElementById("list1").innerHTML = "";
+    document.getElementById("list2").innerHTML = "";
+    document.getElementById("list3").innerHTML = "";
+    document.getElementById("list4").innerHTML = "";
+    document.getElementById("list5").innerHTML = "";
+    document.getElementById("list6").innerHTML = "";
+}
+
+
+
+
+
+function splitBets(betArray) { 
+
+    // the parameter passed is the array of bets, so we can pass WinArray or PlaceArray, because the model and calcs are the same for wins and place
+    betArray.forEach(function (betValue) {
+        var unsplitAmt = betValue.amt;
+        var splitA = betValue.splitA;
+        var totExAmt = 0;
+
+        // first cycle through all the win/place splits to compute the total Exacta amounts
+        splitA.forEach(function (splitVal) {
+            totExAmt += exA[splitVal.exIndex].mingledAmt;
+        });
+
+        // then cycle again to compute the new splits from the total amount. Splits are in the same ratio as exacta mingled amounts
+        splitA.forEach(function (splitVal) {
+            splitVal.oldSplitAmt = splitVal.splitAmt;
+            splitVal.splitAmt = unsplitAmt * exA[splitVal.exIndex].mingledAmt / totExAmt;
+        });
+
+    });
        
-
-    }
-
-
-    // do the below only once every frame. No need to iterate between frames. Start by clearing the old picture
-    ctx.clearRect(0, 0, canv.width, canv.height);
-
-    // Calculate and display the total energy
-    enPotential = -g * l1 * m1 * Math.cos(dV.t1) - g * m2 * l2 * Math.cos(dV.t2) - g * m3 * l3 * Math.cos(dV.t3);
-    enKineticLine1 = m1 / 2 * l1 * l1 * dV.t1D * dV.t1D + m2 / 2 * l2 * l2 * dV.t2D * dV.t2D + m3 / 2 * l3 * l3 * dV.t3D * dV.t3D;
-    enKineticLine2 = m2 * l1 * l2 * dV.t1D * dV.t2D * Math.cos(dV.t1 - dV.t2) + m3 * l2 * l3 * dV.t2D * dV.t3D * Math.cos(dV.t2 - dV.t3) + m3 * l1 * l3 * dV.t1D * dV.t3D * Math.cos(dV.t1 - dV.t3);
-    enLossPercent = (enInitial - enPotential - enKineticLine1 - enKineticLine2) / Math.abs(enInitial) * 100;
-    
-    if (enLossPercent > 1) {
-        dV.t1D = dV.t1D * 1.01;
-        dV.t2D = dV.t2D * 1.01;
-        dV.t3D = dV.t3D * 1.01;
-    }
-    
-    if (enLossPercent < -1) {
-        dV.t1D = dV.t1D * 0.99;
-        dV.t2D = dV.t2D * 0.99;
-        dV.t3D = dV.t3D * 0.99;
-    }
-    if (enLossPercent < -2) {
-        dV.t1D = dV.t1D * 0.98;
-        dV.t2D = dV.t2D * 0.98;
-        dV.t3D = dV.t3D * 0.98;
-    }
-    
-
-    enString = enLossPercent.toFixed(1);
-    stepString = stepCounter.toString();
-    ctx.font = "30px Arial";
-    ctx.fillText("Energy loss: " + enString + "%   " + stepString, 10, 50);
-
-    //Convert the new polar coordinates in cartesian coordinates
-    ball1.X = l1 * Math.sin(dV.t1);
-    ball1.Y = -l1 * Math.cos(dV.t1);
-
-    ball2.X = l2 * Math.sin(dV.t2) + ball1.X;
-    ball2.Y = -l2 * Math.cos(dV.t2) + ball1.Y;
-
-    ball3.X = l3 * Math.sin(dV.t3) + ball2.X;
-    ball3.Y = -l3 * Math.cos(dV.t3) + ball2.Y;
-
-    // Draw the balls
-    ball0.Join(ball1);
-    ball1.Join(ball2);
-    ball2.Join(ball3);
-    ball0.Draw();
-    ball1.Draw();
-    ball2.Draw();
-    ball3.Draw();
-
-  
-      re = requestAnimationFrame(Draw);
-
-
-}
-
-function diffVector() {
-    // The differential vector
-    this.t1 = 0;
-    this.t2 = 0;
-    this.t3 = 0;
-    this.t1D = 0;
-    this.t2D = 0;
-    this.t3D = 0;
 }
 
 
-diffVector.prototype.copy = function (source) {
 
-    this.t1 = source.t1;
-    this.t2 = source.t2;
-    this.t3 = source.t3;
-    this.t1D = source.t1D;
-    this.t2D = source.t2D;
-    this.t3D = source.t3D;
+function averageSplits(betArray) {
 
-};
+    // the parameter passed is the array of bets, so we can pass WinArray or PlaceArray, because the model and calcs are the same for wins and place
+    betArray.forEach(function (betValue) {
+        var unsplitAmt = betValue.amt;
+        var splitA = betValue.splitA;
+        var averageSplit = 0;
+        var totExAmt = 0;
 
-
-// The ball object.
-function Ball() {
-    // Starting position.
-    this.X = 0;
-    this.Y = 0;
-
-    //Color of the ball (from the html object tagged color1)
-    this.BallColor = color1.value;
-    
-    // Size of the ball.
-    this.Radius = 8;
-
-}
-
-
-Ball.prototype.Draw = function () {
-    ctx.beginPath();
-    ctx.fillStyle = this.BallColor;
-
-
-    ctx.arc(ax.ConvX(this.X), ax.ConvY(this.Y), this.Radius, 0, Math.PI * 2, false);
-    ctx.fill();
-    ctx.closePath();
-
-};
-    
-Ball.prototype.Join = function (ball2) {
-    ctx.beginPath();
-
-    ctx.moveTo(ax.ConvX(this.X), ax.ConvY(this.Y));
-    ctx.lineTo(ax.ConvX(ball2.X), ax.ConvY(ball2.Y));
-
-    ctx.lineWidth = 5;
-    ctx.stroke();
-
-    ctx.closePath();
-};
-
-
-function reset() {
-   //cancelAnimationFrame(re);
-   //init();
-   re = requestAnimationFrame(Draw);
-}
-
-
-function Axis(canv, xMin,xMax, yMin, yMax) {
-    // Coordinates of the axis
-    this.XMax = xMax;
-    this.XMin = xMin;
-    this.YMax = yMax;
-    this.YMin = yMin;
-    this.canv = canv;
-}
-
-Axis.prototype.ConvX = function (X) {
-    return X * this.canv.width / (this.XMax - this.XMin) - this.canv.width * this.XMin / (this.XMax - this.XMin);
-};
-
-Axis.prototype.ConvY = function (Y) {
-    return -Y * this.canv.height / (this.YMax - this.YMin) + this.canv.height * this.YMax / (this.YMax - this.YMin);
-};
-
-function iterateRungeKutta(dV, step) {
-
-    // copy the values of input vector in local variables for processing. 
-    var y1 = dV.t1;
-    var y2 = dV.t2;
-    var y3 = dV.t3;
-    var y4 = dV.t1D;
-    var y5 = dV.t2D;
-    var y6 = dV.t3D;
-
-    // now use the Runge Kutta algorithm of order 4 applied to a vector V
-    // V has the coordinates y1...y6 and the function motionSolve is the funciton that calculates the differenial V' of V
-    // we use this function with a number of inputs to calculate the best approximation of the next iteration. 
-
-    var K1 = motionSolve(y1, y2, y3, y4, y5, y6);
-    var a1 = K1.t1D;
-    var a2 = K1.t2D;
-    var a3 = K1.t3D;
-    var a4 = K1.t1DD;
-    var a5 = K1.t2DD;
-    var a6 = K1.t3DD;
-
-    var K2 = motionSolve(y1 + step / 2 * a1, y2 + step / 2 * a2, y3 + step / 2 * a3, y4 + step / 2 * a4, y5 + step / 2 * a5, y6 + step / 2 * a6);
-    var b1 = K2.t1D;
-    var b2 = K2.t2D;
-    var b3 = K2.t3D;
-    var b4 = K2.t1DD;
-    var b5 = K2.t2DD;
-    var b6 = K2.t3DD;
-
-    var K3 = motionSolve(y1 + step / 2 * b1, y2 + step / 2 * b2, y3 + step / 2 * b3, y4 + step / 2 * b4, y5 + step / 2 * b5, y6 + step / 2 * b6);
-    var c1 = K3.t1D;
-    var c2 = K3.t2D;
-    var c3 = K3.t3D;
-    var c4 = K3.t1DD;
-    var c5 = K3.t2DD;
-    var c6 = K3.t3DD;
-
-    var K4 = motionSolve(y1 + step * c1, y2 + step * c2, y3 + step * c3, y4 + step * c4, y5 + step * c5, y6 + step * c6);
-    var d1 = K4.t1D;
-    var d2 = K4.t2D;
-    var d3 = K4.t3D;
-    var d4 = K4.t1DD;
-    var d5 = K4.t2DD;
-    var d6 = K4.t3DD;
-
-    y1 = y1 + step / 6 * (a1 + 2 * b1 + 2 * c1 + d1);
-    y2 = y2 + step / 6 * (a2 + 2 * b2 + 2 * c2 + d2);
-    y3 = y3 + step / 6 * (a3 + 2 * b3 + 2 * c3 + d3);
-    y4 = y4 + step / 6 * (a4 + 2 * b4 + 2 * c4 + d4);
-    y5 = y5 + step / 6 * (a5 + 2 * b5 + 2 * c5 + d5);
-    y6 = y6 + step / 6 * (a6 + 2 * b6 + 2 * c6 + d6);
-
-
-    // the iteration is now complete
-    // store the value of the next point in the vector. 
-    dV.t1 = y1;
-    dV.t2 = y2;
-    dV.t3 = y3;
-    dV.t1D = y4;
-    dV.t2D = y5;
-    dV.t3D = y6;
-
-}
-
-
-function motionSolve(y1, y2, y3, y4, y5, y6) {
+        // first cycle through all the win/place splits to compute the total Exacta amounts
+        splitA.forEach(function (splitVal) {
+            totExAmt += exA[splitVal.exIndex].mingledAmt;
+        });
         
-    // the differential equation for a triple pendulum can be expressed in three equations with three unknown x,y,z (which are T1DD, T2DD and T3DD - the second order differentals of the angles Theta)
-    // this set of three equations have the form caX+cbY+ccZ+cd = 0, za1X+cb1Y+cc1Z+cd1 = 0 and ca2X+cb2Y+cc2Z+cd2 = 0 
-    // using the Euler Lagrange formula, you can express the values of the coefficients ca,ca1,ca2,cb,cb1...etc as functions of y1...y6 where y1...y6 are the coordinates of a differential vector equation
-    // the differntial equation resulted from the Euler Lagrange equation is of the form V'=f(V) in other words Deriv(y1) = f1(y1,y2,y3,y4,y5,y6), Deriv(y2) = f2(y1,..y6)...etc
-    // this Function is solving the differental equation and returning the vector V' given an input V 
-    
-    // start by setting the values of the coefficients of hte three equations with three unknown
-    var a = m1 * l1 * l1;
-    var b = m2 * l1 * l2 * Math.cos(y1 - y2);
-    var c = m3 * l1 * l3 * Math.cos(y1 - y3);
-    var d = l1*(m1 * l2 * y5 * y5 * Math.sin(y1 - y2) + m3 * l3 * y6 * y6 * Math.sin(y1 - y3) + m1 * g * Math.sin(y1));
+        // compute the average of the splits
+        splitA.forEach(function (splitVal) {
+            averageSplit += splitVal.splitAmt/splitA.length;
+        });
 
-    var a1 = b;
-    var b1 = m2 * l2 * l2;
-    var c1 = m3 * l2 * l3 * Math.cos(y2 - y3);
-    var d1 = l2*(-m2 * l1 * y4 * y4 * Math.sin(y1 - y2) + m3 * l3 * y6 * y6 * Math.sin(y2 - y3) + m2 * g * Math.sin(y2));
+        // then cycle again to compute the new splits from the average amount
+        splitA.forEach(function (splitVal) {
+            splitVal.splitAmt = averageSplit * exA[splitVal.exIndex].mingledAmt / totExAmt;
+        });
 
-    var a2 = c;
-    var b2 = c1;
-    var c2 = m3 * l3 * l3;
-    var d2 = -m3 * l3 * (l2 * y5 * y5 * Math.sin(y2 - y3) + l1 * y4 * y4 * Math.sin(y1 - y3) - g * Math.sin(y3));
+    });
+
+}
 
 
-    if (b === 0 && c === 0 && b1 === 0) {
-        t1DD = -d / a;
-        t2DD = 0;
-        t3DD = 0;
+
+
+
+function aggregateBets() {
+
+    // first set the mingled amounts to be the exacta bets
+    exA.forEach(function (val) {
+        val.oldMingledAmt = val.mingledAmt;  //old amounts are only used for internal data in case you compare iterations. Not necessary otherwise
+        val.mingledAmt = val.amt;  // store the first component of the mingled amount to be the exacta bet. The next steps add win and place splits
+        });
+
+    // then add each win split
+    winA.forEach(function (winAEntry) {
+        var splitA = winAEntry.splitA;  // splitA is the array conaining the splits
+        splitA.forEach(function (splitVal) {  // perform another loop for each win bet
+            exA[splitVal.exIndex].mingledAmt +=  splitVal.splitAmt;
+        });
+    });
+
+    // then add each place split
+    placeA.forEach(function (placeAEntry) {
+        var splitA = placeAEntry.splitA;  // splitA is the array conaining the splits
+        splitA.forEach(function (splitVal) {  // perform another loop for each place bet
+            exA[splitVal.exIndex].mingledAmt += splitVal.splitAmt;
+        });
+    });
+
+}
+
+
+
+
+function initialiseExactaArray() {
+
+    // the data model for the exacta Array contains array elements who are structures (objects) with properties:
+    // amt(the amount bet on the exacta only), 
+    // mingledAmt(the mingled amount containing wins and place)
+    // oldMingledAMT(for conveneince) and 
+    // seq(an array containing the sequence of the exacta - for example [1,2] exacta and [1,3] exacta...etc.
+    // so the exacta array length is N(n-1) in teh case of a 2 depth
+
+
+    var index = 0;
+
+
+    if (exactaDepth == 2) {
+        for (var i = 0; i < maxRunners; i++) {
+            for (var j = 0; j < maxRunners; j++) {
+                if (j != i) {
+                    exA[index++] = { amt: seedBet, mingledAmt: seedBet, seq: [i, j], oldMingledAmt: seedBet}
+                }
+            }
+        }
     }
-    else {
 
+    if (exactaDepth == 3) {
+        for (var i = 0; i < maxRunners; i++) {
+            for (var j = 0; j < maxRunners; j++) {
+                for (var k = 0; k < maxRunners; k++) {
 
-        // solve the generic three equations with three unknown in a generic manner
-        var A = 2 * b * a1 * a2 - b1 * a * a2 - b2 * a * a1;
-        var B = 2 * c * a1 * a2 - c1 * a * a2 - c2 * a * a1;
-        var C = 2 * d * a1 * a2 - d1 * a * a2 - d2 * a * a1;
-
-        var A1 = 2 * a * b1 * b2 - a1 * b * b2 - a2 * b * b1;
-        var B1 = 2 * c * b1 * b2 - c1 * b * b2 - c2 * b * b1;
-        var C1 = 2 * d * b1 * b2 - d1 * b * b2 - d2 * b * b1;
-
-        var A2 = 2 * a * c1 * c2 - a1 * c * c2 - a2 * c * c1;
-        var B2 = 2 * b * c1 * c2 - b1 * c * c2 - b2 * c * c1;
-        var C2 = 2 * d * c1 * c2 - d1 * c * c2 - d2 * c * c1;
-        
-
-        t1DD = (-B2 * C1 * B - A* B1 * C2 + B1 * B2 * C) / (A* B1 * A2 + A1 * B2 * B );
-        t3DD = (-C1 - A1 * t1DD) / B1;
-        t2DD = (-C - B * t3DD) / A;
-
-        
-
+                    if (j != i && k != i && k != j) {
+                        exA[index++] = { amt: seedBet, mingledAmt: seedBet, seq: [i, j, k] , oldMingledAmt:seedBet}
+                    }
+                }
+            }
+        }
     }
-    //now pass back the derivatives V' of the input vector V
 
-    return {
-        t1D: y4,
-        t2D: y5,
-        t3D: y6,
-        t1DD: t1DD,
-        t2DD: t2DD,
-        t3DD: t3DD
-    };
+}
+
+function initialiseWinArray() {
+
+    // the win array winA contains bet elements made of objects with properties amt and splitA (see below)
+    // the index of the array is the runner number [0] woud be the bet on horse 0, [1] the bet on horse 1...
+    // - amt: the total win amount bet on this runner
+    // - splitA: the split Array containing the splits
+    // the Split Array is made of split elements which have the following properties
+    // - splitamt: the amount of this split
+    // - exIndex: the index of the exacta to which the split applies (for example SplitAmount £10 is put on exacta 6 ->index = 6)
+    // - oldSplitAmount is not needed. only for internal calculations if you want to compare one iterations after the other 
+
+    for (var runNum = 0; runNum < maxRunners; runNum++) {
+
+        var thisWinA = [];
+        var winInd = 0;
+
+        for (var exInd = 0; exInd < exA.length; exInd++) {
+            if (runNum == exA[exInd].seq[0]) {
+                thisWinA[winInd++] = { splitAmt: seedBet, exIndex: exInd, oldSplitAmt:seedBet }
+            }
+        }
+        winA[runNum] = { amt: seedBet, splitA: thisWinA };
+    }
+}
+
+function initialisePlaceArray() {
+    // same comments as win array. Same model and same code
+
+    for (var runNum = 0; runNum < maxRunners; runNum++) {
+
+        var thisPlaceA = [];
+        var placeInd = 0;
+        var foundPlaceInExacta = false;
+       
+        for (var exInd = 0; exInd < exA.length; exInd++) {
+            if (exactaDepth == 2)
+                foundPlaceInExacta = runNum == exA[exInd].seq[0] || runNum == exA[exInd].seq[1];
+            else
+                foundPlaceInExacta = runNum == exA[exInd].seq[0] || runNum == exA[exInd].seq[1] || runNum == exA[exInd].seq[2];
+
+            if (foundPlaceInExacta) {
+                thisPlaceA[placeInd++] = { splitAmt: seedBet, exIndex: exInd, oldSplitAmt: seedBet };
+            }
+        }
+        placeA[runNum] = { amt: seedBet, splitA: thisPlaceA };
+    }
+}
+
+
+
+function addWinBet() {
+    // cycle through the arguments so you can have multiple entries at the same time
+    for (var i = 0; i < arguments.length; i++) {
+        var runner = arguments[i][0];
+        var amount = arguments[i][1];
+        winA[runner].amt += amount;
+    }
+}
+
+function addPlaceBet() {
+    // cycle through the arguments so you can have multiple entries at the same time
+    for (var i = 0; i < arguments.length; i++) {
+        var runner = arguments[i][0];
+        var amount = arguments[i][1];
+        placeA[runner].amt += amount;
+    }
+}
+
+function addExBet() {
+    // cycle through the arguments so you can have multiple entries at the same time
+    for (var i = 0; i < arguments.length; i++) {
+        var runner = arguments[i][0];
+        var amount = arguments[i][1];
+        exA[runner].amt += amount;
+        exA[runner].mingledAmt += amount;
+    }
 }

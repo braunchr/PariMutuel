@@ -3,59 +3,41 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebSite1(1)", "..\WebSite1\", "{2036C888-AFAE-44C0-A0E1-114CD533DBEC}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{99001B62-06F7-4C5A-BABB-13DEAFF10F17}"
+EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "PariMutuel", ".", "{B290ECDE-E1F7-4D6F-97C6-176D7220AEC4}"
 	ProjectSection(WebsiteProperties) = preProject
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.6.1"
-		Debug.AspNetCompiler.VirtualPath = "/localhost_57819"
-		Debug.AspNetCompiler.PhysicalPath = "..\WebSite1\"
-		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_57819\"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_52936"
+		Debug.AspNetCompiler.PhysicalPath = "..\PariMutuel\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_52936\"
 		Debug.AspNetCompiler.Updateable = "true"
 		Debug.AspNetCompiler.ForceOverwrite = "true"
 		Debug.AspNetCompiler.FixedNames = "false"
 		Debug.AspNetCompiler.Debug = "True"
-		Release.AspNetCompiler.VirtualPath = "/localhost_57819"
-		Release.AspNetCompiler.PhysicalPath = "..\WebSite1\"
-		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_57819\"
+		Release.AspNetCompiler.VirtualPath = "/localhost_52936"
+		Release.AspNetCompiler.PhysicalPath = "..\PariMutuel\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_52936\"
 		Release.AspNetCompiler.Updateable = "true"
 		Release.AspNetCompiler.ForceOverwrite = "true"
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
-		VWDPort = "57819"
-		SlnRelativePath = "..\WebSite1\"
-		DefaultWebSiteLanguage = "Visual C#"
+		VWDPort = "52936"
 	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
-		Debug|ARM = Debug|ARM
-		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
-		Release|Any CPU = Release|Any CPU
-		Release|ARM = Release|ARM
-		Release|x64 = Release|x64
-		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Debug|ARM.Build.0 = Debug|Any CPU
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Debug|x64.Build.0 = Debug|Any CPU
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Debug|x86.Build.0 = Debug|Any CPU
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Release|Any CPU.ActiveCfg = Debug|Any CPU
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Release|Any CPU.Build.0 = Debug|Any CPU
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Release|ARM.ActiveCfg = Debug|Any CPU
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Release|ARM.Build.0 = Debug|Any CPU
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Release|x64.ActiveCfg = Debug|Any CPU
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Release|x64.Build.0 = Debug|Any CPU
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Release|x86.ActiveCfg = Debug|Any CPU
-		{2036C888-AFAE-44C0-A0E1-114CD533DBEC}.Release|x86.Build.0 = Debug|Any CPU
+		{B290ECDE-E1F7-4D6F-97C6-176D7220AEC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B290ECDE-E1F7-4D6F-97C6-176D7220AEC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B290ECDE-E1F7-4D6F-97C6-176D7220AEC4} = {99001B62-06F7-4C5A-BABB-13DEAFF10F17}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {26AA8E4F-5CAD-4FBF-AEEC-D510AA9B7584}
