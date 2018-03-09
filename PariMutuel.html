@@ -5,13 +5,12 @@
     <title>this is a test</title>
     <meta charset="UTF-8">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src='Triple.js'></script>
+    <script src="PariMutuel.js"></script>
 
-    <link rel="stylesheet" type="text/css" href="Triple.css">
+    <link rel="stylesheet" type="text/css" href="PariMutuel.css">
 
     <script>
-   
-        
+  
     </script>
 
 </head>
@@ -19,26 +18,53 @@
 
 <body onload="init();">
     <div style="width: 800px;" >
-    
-        <div id="canvasContainer" style="position:relative; height:810px; " >
-            <canvas id="canvas1" height="800" width="800" ></canvas>
-           
+                   
+        
+
+        <div class="item_line">
+            <button onclick="clearResults()">Clear</button>
+            <button onclick="init()">Recalculate</button>
         </div>
         
         <div class="item_line">
-            <button onclick="reset()">> Lines</button>
-        
-            <label>Colors</label>
-            <input id="color1" type="color" style="width:60px" value="#323264" > 
-        
+            <label>Nr of Horses</label> <input id="MaxRunners" style="width:100px" value="4">
+            <label>Exacta Depth</label> <input id="ExactaDepth" style="width:100px" value="2">     
+            <label>Iterations</label> <input id="iter" style="width:100px" value="500">     
         </div>
 
-      
+        
+        <div class="item_line">
+          <br /><p>MINGLED</p>
+            <div style="display: flex">
+                <p style="width:140px ; text-indent:20px"> WINS </p>
+                <p style="width:130px"> PLACE   </p>
+                <p style="width:120px"> EXACTA   </p>
+
+            </div>
+            <div style="display: flex">
+                <div id="list1" ; style="height:300px;width:100px;border:1px solid #ccc;background-color:white;overflow:auto; margin:1%">   </div>
+                <div id="list2" ; style="height:300px;width:100px;border:1px solid #ccc;background-color:white;overflow:auto; margin:1%">   </div>
+                <div id="list3" ; style="height:300px;width:100px;border:1px solid #ccc;background-color:white;overflow:auto; margin:1%">   </div>
+            </div>
+        </div>
 
 
-       
+        <div class="item_line">
+            <br /><p>UNMINGLED</p>
+            <div style="display: flex">
+                <p style="width:140px ; text-indent:20px"> WINS </p>
+                <p style="width:130px"> PLACE   </p>
+                <p style="width:120px"> EXACTA   </p>
 
-    </div>
+            </div>
+            <div style="display: flex">
+                <div id="list4" ; style="height:300px;width:100px;border:1px solid #ccc;background-color:white;overflow:auto; margin:1%">   </div>
+                <div id="list5" ; style="height:300px;width:100px;border:1px solid #ccc;background-color:white;overflow:auto; margin:1%">   </div>
+                <div id="list6" ; style="height:300px;width:100px;border:1px solid #ccc;background-color:white;overflow:auto; margin:1%">   </div>
+            </div>
+        </div>
+
+        </div>
     
 </body>
 </html>
