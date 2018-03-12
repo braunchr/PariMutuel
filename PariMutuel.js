@@ -24,23 +24,19 @@ function init() {
     addWinBet([0, 150], [1, 300], [2, 140],[3,310]);
     addPlaceBet([0, 90], [1, 120], [2, 80], [3, 110]);
 
+    //addWinBet([0, 100]);
+    //addPlaceBet([0, 50]);
+
+
     // iterate through the three steps of splitting hte win bets, the place bets, aggregate all of them and start again
     var iterations = Number(document.getElementById("iter").value);
 
-
-    for (var i = 0; i < iterations / 10; i++) {
-
-        for (var j = 0; j < 10; j++) {
+    for (var i = 0; i < iterations ; i++) {
             splitBets(winA);
             splitBets(placeA);
             aggregateBets();
-        }
-
-        averageSplits(winA);
-        averageSplits(placeA);
-        aggregateBets();
-
     }
+
     // display whihchever calculation you want to display
     showResults();
 
@@ -66,7 +62,7 @@ function showResults() {
     
     // then calculate and output each of the odds for each win 
     winA.forEach(function (bet) {
-        if (pot / bet.amt < 1000) {
+        if ( bet.amt > 1 ) {
             st = (pot / bet.amt).toFixed(2).toString();
             document.getElementById("list4").innerHTML += "<div>" + st + "</div>"; // this is adding the string to the "list 4" element in the HTML
         }
@@ -84,7 +80,7 @@ function showResults() {
 
     // then calculate and output each of the odds for each win 
     placeA.forEach(function (bet) {
-        if (pot / bet.amt < 1000) {
+        if (bet.amt > 1 ) {
             st = (pot / bet.amt).toFixed(2).toString();
             document.getElementById("list5").innerHTML += "<div>" + st + "</div>";
         }
@@ -102,7 +98,7 @@ function showResults() {
 
     // then calculate and output each of the odds for each win 
     exA.forEach(function (bet) {
-        if (pot / bet.amt < 1000) {
+        if (bet.amt > 1 ) {
             st = (pot / bet.amt).toFixed(2).toString();
             document.getElementById("list6").innerHTML += "<div>" + st + "</div>";
         }
@@ -122,7 +118,7 @@ function showResults() {
 
     // then calculate and output each of the odds for each win 
     exA.forEach(function (bet) {
-        if (pot / bet.mingledAmt < 1000) {
+        if (bet.amt > 1 ) {
             st = (pot / bet.mingledAmt).toFixed(2).toString();
             document.getElementById("list3").innerHTML += "<div>" + st + "</div>";
         }
@@ -150,7 +146,7 @@ function showResults() {
 
         mingledOdd = winReturn / bet.amt;  // the mingled odds are the ratio of the Win bets (bet.amt) to the winReturns
 
-        if (mingledOdd < 1000) {
+        if (bet.amt > 1 ) {
             st = mingledOdd.toFixed(2).toString();
             document.getElementById("list1").innerHTML += "<div>" + st + "</div>";
         }
@@ -241,26 +237,32 @@ function splitBets(betArray) {
 
 function averageSplits(betArray) {
 
-    // the parameter passed is the array of bets, so we can pass WinArray or PlaceArray, because the model and calcs are the same for wins and place
+    var totExAmt = 0;
+    
+
+    // first cycle through all the win/place splits to compute the total Exacta amounts
+    exA.forEach(function (exBet) {
+        totExAmt += exBet.mingledAmt;
+    });
+
+    // calculate.the exacta odds. 
+    exA.forEach(function (exBet) {
+        exBet.mingledOdd= totExAmt/exBet.mingledAmt;
+    });
+
+    // cycle through the bet arrays and compute the average return 
     betArray.forEach(function (betValue) {
         var unsplitAmt = betValue.amt;
         var splitA = betValue.splitA;
         var averageSplit = 0;
-        var totExAmt = 0;
+        var averageReturn = 0;
 
-        // first cycle through all the win/place splits to compute the total Exacta amounts
-        splitA.forEach(function (splitVal) {
-            totExAmt += exA[splitVal.exIndex].mingledAmt;
+        splitA.forEach(function (split) {
+            averageReturn += exA[split.exIndex].mingledOdd * split.splitAmt / splitA.length
         });
-        
-        // compute the average of the splits
-        splitA.forEach(function (splitVal) {
-            averageSplit += splitVal.splitAmt/splitA.length;
-        });
-
-        // then cycle again to compute the new splits from the average amount
-        splitA.forEach(function (splitVal) {
-            splitVal.splitAmt = averageSplit * exA[splitVal.exIndex].mingledAmt / totExAmt;
+         
+        splitA.forEach(function (split) {
+            split.splitAmt = averageReturn / exA[split.exIndex].mingledOdd 
         });
 
     });
